@@ -90,6 +90,15 @@
 #define LLVM_NATIVE_TARGETMC LLVMInitializeMipsTargetMC
 
 
+#elif defined(__powerpc__) || defined(__powerpc64__)
+
+/* LLVM architecture name for the native architecture, if available */
+#define LLVM_NATIVE_ARCH PowerPC
+
+/* Host triple LLVM will be executed on */
+#define LLVM_HOSTTRIPLE "powerpc-unknown-linux-gnu"
+
+
 #else
 
 #error "Unknown native architecture"
