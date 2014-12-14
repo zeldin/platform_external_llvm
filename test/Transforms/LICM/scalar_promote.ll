@@ -6,7 +6,7 @@ target datalayout = "E-p:64:64:64-a0:0:8-f32:32:32-f64:64:64-i1:8:8-i8:8:8-i16:1
 define void @test1(i32 %i) {
 Entry:
   br label %Loop
-; CHECK: @test1
+; CHECK-LABEL: @test1(
 ; CHECK: Entry:
 ; CHECK-NEXT:   load i32* @X
 ; CHECK-NEXT:   br label %Loop
@@ -24,7 +24,8 @@ Loop:   ; preds = %Loop, %0
 Out:
   ret void
 ; CHECK: Out:
-; CHECK-NEXT:   store i32 %x2, i32* @X
+; CHECK-NEXT:   %[[LCSSAPHI:.*]] = phi i32 [ %x2
+; CHECK-NEXT:   store i32 %[[LCSSAPHI]], i32* @X
 ; CHECK-NEXT:   ret void
 
 }
@@ -32,7 +33,7 @@ Out:
 define void @test2(i32 %i) {
 Entry:
   br label %Loop
-; CHECK: @test2
+; CHECK-LABEL: @test2(
 ; CHECK: Entry:
 ; CHECK-NEXT:    %.promoted = load i32* getelementptr inbounds (i32* @X, i64 1)
 ; CHECK-NEXT:    br label %Loop
@@ -48,14 +49,15 @@ Loop:   ; preds = %Loop, %0
 Exit:   ; preds = %Loop
   ret void
 ; CHECK: Exit:
-; CHECK-NEXT:   store i32 %V, i32* getelementptr inbounds (i32* @X, i64 1)
+; CHECK-NEXT:   %[[LCSSAPHI:.*]] = phi i32 [ %V
+; CHECK-NEXT:   store i32 %[[LCSSAPHI]], i32* getelementptr inbounds (i32* @X, i64 1)
 ; CHECK-NEXT:   ret void
 }
 
 
 
 define void @test3(i32 %i) {
-; CHECK: @test3
+; CHECK-LABEL: @test3(
   br label %Loop
 Loop:
         ; Should not promote this to a register
@@ -73,7 +75,7 @@ Out:    ; preds = %Loop
 
 ; PR8041
 define void @test4(i8* %x, i8 %n) {
-; CHECK: @test4
+; CHECK-LABEL: @test4(
   %handle1 = alloca i8*
   %handle2 = alloca i8*
   store i8* %x, i8** %handle1
@@ -121,7 +123,7 @@ exit:
 define void @test5(i32 %i, i32** noalias %P2) {
 Entry:
   br label %Loop
-; CHECK: @test5
+; CHECK-LABEL: @test5(
 ; CHECK: Entry:
 ; CHECK-NEXT:   load i32* @X
 ; CHECK-NEXT:   br label %Loop
@@ -142,7 +144,8 @@ Loop:   ; preds = %Loop, %0
 Out:
   ret void
 ; CHECK: Out:
-; CHECK-NEXT:   store i32 %x2, i32* @X
+; CHECK-NEXT:   %[[LCSSAPHI:.*]] = phi i32 [ %x2
+; CHECK-NEXT:   store i32 %[[LCSSAPHI]], i32* @X
 ; CHECK-NEXT:   ret void
 
 }
@@ -178,10 +181,13 @@ for.end:                                          ; preds = %for.cond.for.end_cr
 ; CHECK: for.body.lr.ph:
 ; CHECK-NEXT:  %gi.promoted = load i32* %gi, align 4, !tbaa !0
 ; CHECK: for.cond.for.end_crit_edge:
-; CHECK-NEXT:  store i32 %inc, i32* %gi, align 4, !tbaa !0
+; CHECK-NEXT:  %[[LCSSAPHI:.*]] = phi i32 [ %inc
+; CHECK-NEXT:  store i32 %[[LCSSAPHI]], i32* %gi, align 4, !tbaa !0
 }
 
-!0 = metadata !{metadata !"int", metadata !1}
+!0 = metadata !{metadata !4, metadata !4, i64 0}
 !1 = metadata !{metadata !"omnipotent char", metadata !2}
 !2 = metadata !{metadata !"Simple C/C++ TBAA"}
-!3 = metadata !{metadata !"float", metadata !1}
+!3 = metadata !{metadata !5, metadata !5, i64 0}
+!4 = metadata !{metadata !"int", metadata !1}
+!5 = metadata !{metadata !"float", metadata !1}

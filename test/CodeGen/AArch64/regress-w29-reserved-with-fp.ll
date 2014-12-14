@@ -4,7 +4,7 @@
 declare void @bar()
 
 define void @test_w29_reserved() {
-; CHECK: test_w29_reserved:
+; CHECK-LABEL: test_w29_reserved:
 ; CHECK: add x29, sp, #{{[0-9]+}}
 
   %val1 = load volatile i32* @var

@@ -1,10 +1,10 @@
-; RUN: llc < %s -mtriple=thumbv7-none-linux-gnueabi | FileCheck %s
+; RUN: llc < %s -mtriple=thumbv7-none-linux-gnueabi -arm-atomic-cfg-tidy=0 | FileCheck %s
 ; PR4659
 ; PR4682
 
 define hidden i32 @__gcov_execlp(i8* %path, i8* %arg, ...) nounwind {
 entry:
-; CHECK: __gcov_execlp:
+; CHECK-LABEL: __gcov_execlp:
 ; CHECK: sub sp, #8
 ; CHECK: push
 ; CHECK: add r7, sp, #4

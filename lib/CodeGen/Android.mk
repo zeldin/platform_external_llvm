@@ -4,35 +4,40 @@ codegen_SRC_FILES := \
   AggressiveAntiDepBreaker.cpp \
   AllocationOrder.cpp \
   Analysis.cpp \
+  AtomicExpandLoadLinkedPass.cpp \
   BasicTargetTransformInfo.cpp \
   BranchFolding.cpp \
   CalcSpillWeights.cpp \
   CallingConvLower.cpp \
   CodeGen.cpp \
-  CodePlacementOpt.cpp \
+  CodeGenPrepare.cpp \
   CriticalAntiDepBreaker.cpp \
-  DFAPacketizer.cpp \
   DeadMachineInstructionElim.cpp \
+  DFAPacketizer.cpp \
   DwarfEHPrepare.cpp \
   EarlyIfConversion.cpp \
   EdgeBundles.cpp \
+  ErlangGC.cpp \
   ExecutionDepsFix.cpp \
   ExpandISelPseudos.cpp \
   ExpandPostRAPseudos.cpp \
   GCMetadata.cpp \
   GCMetadataPrinter.cpp \
   GCStrategy.cpp \
+  GlobalMerge.cpp \
   IfConversion.cpp \
   InlineSpiller.cpp \
   InterferenceCache.cpp \
   IntrinsicLowering.cpp \
   JITCodeEmitter.cpp \
+  JumpInstrTables.cpp \
   LatencyPriorityQueue.cpp \
   LexicalScopes.cpp \
   LiveDebugVariables.cpp \
-  LiveInterval.cpp \
   LiveIntervalAnalysis.cpp \
+  LiveInterval.cpp \
   LiveIntervalUnion.cpp \
+  LivePhysRegs.cpp \
   LiveRangeCalc.cpp \
   LiveRangeEdit.cpp \
   LiveRegMatrix.cpp \
@@ -44,16 +49,16 @@ codegen_SRC_FILES := \
   MachineBlockFrequencyInfo.cpp \
   MachineBlockPlacement.cpp \
   MachineBranchProbabilityInfo.cpp \
-  MachineCSE.cpp \
   MachineCodeEmitter.cpp \
   MachineCopyPropagation.cpp \
+  MachineCSE.cpp \
   MachineDominators.cpp \
-  MachineFunction.cpp \
   MachineFunctionAnalysis.cpp \
+  MachineFunction.cpp \
   MachineFunctionPass.cpp \
   MachineFunctionPrinterPass.cpp \
-  MachineInstr.cpp \
   MachineInstrBundle.cpp \
+  MachineInstr.cpp \
   MachineLICM.cpp \
   MachineLoopInfo.cpp \
   MachineModuleInfo.cpp \
@@ -61,17 +66,17 @@ codegen_SRC_FILES := \
   MachinePassRegistry.cpp \
   MachinePostDominators.cpp \
   MachineRegisterInfo.cpp \
-  MachineSSAUpdater.cpp \
   MachineScheduler.cpp \
   MachineSink.cpp \
+  MachineSSAUpdater.cpp \
   MachineTraceMetrics.cpp \
   MachineVerifier.cpp \
   OcamlGC.cpp \
   OptimizePHIs.cpp \
-  PHIElimination.cpp \
-  PHIEliminationUtils.cpp \
   Passes.cpp \
   PeepholeOptimizer.cpp \
+  PHIElimination.cpp \
+  PHIEliminationUtils.cpp \
   PostRASchedulerList.cpp \
   ProcessImplicitDefs.cpp \
   PrologEpilogInserter.cpp \
@@ -90,16 +95,16 @@ codegen_SRC_FILES := \
   ScheduleDAGPrinter.cpp \
   ScoreboardHazardRecognizer.cpp \
   ShadowStackGC.cpp \
-  ShrinkWrapping.cpp \
   SjLjEHPrepare.cpp \
   SlotIndexes.cpp \
-  SpillPlacement.cpp \
   Spiller.cpp \
+  SpillPlacement.cpp \
   SplitKit.cpp \
   StackColoring.cpp \
+  StackMapLivenessAnalysis.cpp \
+  StackMaps.cpp \
   StackProtector.cpp \
   StackSlotColoring.cpp \
-  StrongPHIElimination.cpp \
   TailDuplication.cpp \
   TargetFrameLoweringImpl.cpp \
   TargetInstrInfo.cpp \
@@ -127,6 +132,7 @@ include $(BUILD_HOST_STATIC_LIBRARY)
 
 # For the device
 # =====================================================
+ifneq (true,$(DISABLE_LLVM_DEVICE_BUILDS))
 include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES := $(codegen_SRC_FILES)
@@ -137,3 +143,4 @@ LOCAL_MODULE_TAGS := optional
 include $(LLVM_DEVICE_BUILD_MK)
 include $(LLVM_GEN_INTRINSICS_MK)
 include $(BUILD_STATIC_LIBRARY)
+endif

@@ -97,7 +97,7 @@ void BitstreamCursor::readAbbreviatedField(const BitCodeAbbrevOp &Op,
   switch (Op.getEncoding()) {
   case BitCodeAbbrevOp::Array:
   case BitCodeAbbrevOp::Blob:
-    assert(0 && "Should not reach here");
+    llvm_unreachable("Should not reach here");
   case BitCodeAbbrevOp::Fixed:
     Vals.push_back(Read((unsigned)Op.getEncodingData()));
     break;
@@ -117,7 +117,7 @@ void BitstreamCursor::skipAbbreviatedField(const BitCodeAbbrevOp &Op) {
   switch (Op.getEncoding()) {
   case BitCodeAbbrevOp::Array:
   case BitCodeAbbrevOp::Blob:
-    assert(0 && "Should not reach here");
+    llvm_unreachable("Should not reach here");
   case BitCodeAbbrevOp::Fixed:
     (void)Read((unsigned)Op.getEncodingData());
     break;
@@ -204,7 +204,16 @@ unsigned BitstreamCursor::readRecord(unsigned AbbrevID,
 
   const BitCodeAbbrev *Abbv = getAbbrev(AbbrevID);
 
-  for (unsigned i = 0, e = Abbv->getNumOperandInfos(); i != e; ++i) {
+  // Read the record code first.
+  assert(Abbv->getNumOperandInfos() != 0 && "no record code in abbreviation?");
+  const BitCodeAbbrevOp &CodeOp = Abbv->getOperandInfo(0);
+  if (CodeOp.isLiteral())
+    readAbbreviatedLiteral(CodeOp, Vals);
+  else
+    readAbbreviatedField(CodeOp, Vals);
+  unsigned Code = (unsigned)Vals.pop_back_val();
+
+  for (unsigned i = 1, e = Abbv->getNumOperandInfos(); i != e; ++i) {
     const BitCodeAbbrevOp &Op = Abbv->getOperandInfo(i);
     if (Op.isLiteral()) {
       readAbbreviatedLiteral(Op, Vals);
@@ -264,8 +273,6 @@ unsigned BitstreamCursor::readRecord(unsigned AbbrevID,
     JumpToBit(NewEnd);
   }
 
-  unsigned Code = (unsigned)Vals[0];
-  Vals.erase(Vals.begin());
   return Code;
 }
 
@@ -292,7 +299,7 @@ void BitstreamCursor::ReadAbbrevRecord() {
         Abbv->Add(BitCodeAbbrevOp(0));
         continue;
       }
-      
+
       Abbv->Add(BitCodeAbbrevOp(E, Data));
     } else
       Abbv->Add(BitCodeAbbrevOp(E));
@@ -308,7 +315,7 @@ bool BitstreamCursor::ReadBlockInfoBlock() {
   if (EnterSubBlock(bitc::BLOCKINFO_BLOCK_ID)) return true;
 
   SmallVector<uint64_t, 64> Record;
-  BitstreamReader::BlockInfo *CurBlockInfo = 0;
+  BitstreamReader::BlockInfo *CurBlockInfo = nullptr;
 
   // Read all the records for this module.
   while (1) {

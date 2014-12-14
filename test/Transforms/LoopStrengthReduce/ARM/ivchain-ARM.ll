@@ -1,4 +1,5 @@
-; RUN: llc < %s -O3 -march=thumb -mcpu=cortex-a9 | FileCheck %s -check-prefix=A9
+; RUN: llc -O3 -mtriple=thumb-eabi -mcpu=cortex-a9 %s -o - | FileCheck %s -check-prefix=A9
+; RUN: llc -O3 -mtriple=thumb-eabi -mcpu=cortex-a9 -addr-sink-using-gep=1 %s -o - | FileCheck %s -check-prefix=A9
 
 ; @simple is the most basic chain of address induction variables. Chaining
 ; saves at least one register and avoids complex addressing and setup
@@ -138,7 +139,7 @@ for.end:                                          ; preds = %for.body, %entry
 ; Consequently, we should *not* form any chains.
 ;
 ; A9: foldedidx:
-; A9: ldrb.w {{r[0-9]|lr}}, [{{r[0-9]|lr}}, #3]
+; A9: ldrb{{(.w)?}} {{r[0-9]|lr}}, [{{r[0-9]|lr}}, #3]
 define void @foldedidx(i8* nocapture %a, i8* nocapture %b, i8* nocapture %c) nounwind ssp {
 entry:
   br label %for.body

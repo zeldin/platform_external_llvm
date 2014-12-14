@@ -15,7 +15,7 @@
 #define LLVM_NATIVE_ARCH X86
 
 /* Host triple LLVM will be executed on */
-#define LLVM_HOSTTRIPLE "i686-unknown-linux-gnu"
+#define LLVM_HOST_TRIPLE "i686-unknown-linux-gnu"
 
 /* LLVM name for the native AsmParser init function, if available */
 #define LLVM_NATIVE_ASMPARSER LLVMInitializeX86AsmParser
@@ -42,7 +42,7 @@
 #define LLVM_NATIVE_ARCH ARM
 
 /* Host triple LLVM will be executed on */
-#define LLVM_HOSTTRIPLE "arm-unknown-linux-gnu"
+#define LLVM_HOST_TRIPLE "arm-unknown-linux-gnu"
 
 /* LLVM name for the native AsmParser init function, if available */
 #define LLVM_NATIVE_ASMPARSER LLVMInitializeARMAsmParser
@@ -69,7 +69,7 @@
 #define LLVM_NATIVE_ARCH Mips
 
 /* Host triple LLVM will be executed on */
-#define LLVM_HOSTTRIPLE "mipsel-unknown-linux-gnu"
+#define LLVM_HOST_TRIPLE "mipsel-unknown-linux-gnu"
 
 /* LLVM name for the native AsmParser init function, if available */
 #define LLVM_NATIVE_ASMPARSER LLVMInitializeMipsAsmParser
@@ -89,6 +89,31 @@
 /* LLVM name for the native target MC init function, if available */
 #define LLVM_NATIVE_TARGETMC LLVMInitializeMipsTargetMC
 
+#elif defined(__aarch64__)
+
+/* LLVM architecture name for the native architecture, if available */
+#define LLVM_NATIVE_ARCH AArch64
+
+/* Host triple LLVM will be executed on */
+#define LLVM_HOST_TRIPLE "aarch64-none-linux-gnu"
+
+/* LLVM name for the native AsmParser init function, if available */
+#define LLVM_NATIVE_ASMPARSER LLVMInitializeAArch64AsmParser
+
+/* LLVM name for the native AsmPrinter init function, if available */
+#define LLVM_NATIVE_ASMPRINTER LLVMInitializeAArch64AsmPrinter
+
+/* LLVM name for the native Disassembler init function, if available */
+#define LLVM_NATIVE_DISASSEMBLER LLVMInitializeAArch64Disassembler
+
+/* LLVM name for the native Target init function, if available */
+#define LLVM_NATIVE_TARGET LLVMInitializeAArch64Target
+
+/* LLVM name for the native TargetInfo init function, if available */
+#define LLVM_NATIVE_TARGETINFO LLVMInitializeAArch64TargetInfo
+
+/* LLVM name for the native target MC init function, if available */
+#define LLVM_NATIVE_TARGETMC LLVMInitializeAArch64TargetMC
 
 #elif defined(__powerpc__) || defined(__powerpc64__)
 

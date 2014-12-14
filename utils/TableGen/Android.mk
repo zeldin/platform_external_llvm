@@ -12,6 +12,7 @@ tablegen_SRC_FILES := \
   CodeGenRegisters.cpp \
   CodeGenSchedule.cpp \
   CodeGenTarget.cpp \
+  CTagsEmitter.cpp \
   DAGISelEmitter.cpp \
   DAGISelMatcherEmitter.cpp \
   DAGISelMatcherGen.cpp \
@@ -26,9 +27,7 @@ tablegen_SRC_FILES := \
   OptParserEmitter.cpp \
   PseudoLoweringEmitter.cpp \
   RegisterInfoEmitter.cpp \
-  SetTheory.cpp \
   SubtargetEmitter.cpp \
-  TGValueTypes.cpp \
   TableGen.cpp \
   X86DisassemblerTables.cpp \
   X86ModRMFilters.cpp \
@@ -36,7 +35,7 @@ tablegen_SRC_FILES := \
 
 include $(CLEAR_VARS)
 
-LOCAL_MODULE := tblgen
+LOCAL_MODULE := llvm-tblgen
 LOCAL_MODULE_TAGS := optional
 LOCAL_SRC_FILES := $(tablegen_SRC_FILES)
 

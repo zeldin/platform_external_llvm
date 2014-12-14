@@ -14,7 +14,12 @@ arm_mc_desc_SRC_FILES := \
   ARMMCCodeEmitter.cpp \
   ARMMCExpr.cpp \
   ARMMCTargetDesc.cpp \
-  ARMMachObjectWriter.cpp
+  ARMMachObjectWriter.cpp \
+  ARMMachORelocationInfo.cpp \
+  ARMTargetStreamer.cpp \
+  ARMUnwindOpAsm.cpp \
+  ARMWinCOFFObjectWriter.cpp \
+  ARMWinCOFFStreamer.cpp \
 
 # For the host
 # =====================================================
@@ -38,7 +43,7 @@ include $(BUILD_HOST_STATIC_LIBRARY)
 
 # For the device only
 # =====================================================
-ifeq ($(TARGET_ARCH),arm)
+ifneq (true,$(DISABLE_LLVM_DEVICE_BUILDS))
 include $(CLEAR_VARS)
 include $(CLEAR_TBLGEN_VARS)
 

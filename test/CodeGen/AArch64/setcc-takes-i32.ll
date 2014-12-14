@@ -1,4 +1,4 @@
-; RUN: llc -verify-machineinstrs -mtriple=aarch64-none-linux-gnu < %s | FileCheck %s
+; RUN: llc -verify-machineinstrs -mtriple=aarch64-none-linux-gnu -o - %s | FileCheck %s
 
 ; Most important point here is that the promotion of the i1 works
 ; correctly. Previously LLVM thought that i64 was the appropriate SetCC output,
@@ -12,7 +12,7 @@
 declare {i64, i1} @llvm.umul.with.overflow.i64(i64, i64)
 
 define i64 @test_select(i64 %lhs, i64 %rhs) {
-; CHECK: test_select:
+; CHECK-LABEL: test_select:
 
   %res = call {i64, i1} @llvm.umul.with.overflow.i64(i64 %lhs, i64 %rhs)
   %flag = extractvalue {i64, i1} %res, 1

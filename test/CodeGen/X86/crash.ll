@@ -1,6 +1,7 @@
-; RUN: llc -march=x86 < %s -verify-machineinstrs
-; RUN: llc -march=x86-64 < %s -verify-machineinstrs
-
+; REQUIRES: asserts
+; RUN: llc -march=x86 -no-integrated-as < %s -verify-machineinstrs -precompute-phys-liveness
+; RUN: llc -march=x86-64 -no-integrated-as < %s -verify-machineinstrs -precompute-phys-liveness
+ 
 ; PR6497
 
 ; Chain and flag folding issues.
@@ -107,8 +108,8 @@ do.body92:                                        ; preds = %if.then66
   ret void
 }
 
-!0 = metadata !{i32 633550}                       
-!1 = metadata !{i32 634261}                       
+!0 = metadata !{i32 633550}
+!1 = metadata !{i32 634261}
 
 
 ; Crash during XOR optimization.
@@ -203,7 +204,7 @@ entry:
 ; <rdar://problem/9187792>
 define fastcc void @func_61() nounwind sspreq {
 entry:
-  %t1 = tail call i64 @llvm.objectsize.i64(i8* undef, i1 false)
+  %t1 = tail call i64 @llvm.objectsize.i64.p0i8(i8* undef, i1 false)
   %t2 = icmp eq i64 %t1, -1
   br i1 %t2, label %bb2, label %bb1
 
@@ -214,7 +215,7 @@ bb2:
   ret void
 }
 
-declare i64 @llvm.objectsize.i64(i8*, i1) nounwind readnone
+declare i64 @llvm.objectsize.i64.p0i8(i8*, i1) nounwind readnone
 
 ; PR10277
 ; This test has dead code elimination caused by remat during spilling.
@@ -238,7 +239,7 @@ declare i64 @llvm.objectsize.i64(i8*, i1) nounwind readnone
 
 define void @_ZNK4llvm17MipsFrameLowering12emitPrologueERNS_15MachineFunctionE() ssp align 2 {
 bb:
-  %tmp = load %t9** undef, align 4, !tbaa !0
+  %tmp = load %t9** undef, align 4
   %tmp2 = getelementptr inbounds %t9* %tmp, i32 0, i32 0
   %tmp3 = getelementptr inbounds %t9* %tmp, i32 0, i32 0, i32 0, i32 0, i32 1
   br label %bb4

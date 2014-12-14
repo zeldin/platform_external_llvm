@@ -17,13 +17,10 @@
 #define LLVM_ADT_OPTIONAL_H
 
 #include "llvm/ADT/None.h"
-#include "llvm/Support/Compiler.h"
 #include "llvm/Support/AlignOf.h"
+#include "llvm/Support/Compiler.h"
 #include <cassert>
-
-#if LLVM_HAS_RVALUE_REFERENCES
 #include <utility>
-#endif
 
 namespace llvm {
 
@@ -42,7 +39,6 @@ public:
       new (storage.buffer) T(*O);
   }
 
-#if LLVM_HAS_RVALUE_REFERENCES
   Optional(T &&y) : hasVal(true) {
     new (storage.buffer) T(std::forward<T>(y));
   }
@@ -70,7 +66,6 @@ public:
     }
     return *this;
   }
-#endif
 
   static inline Optional create(const T* y) {
     return y ? Optional(*y) : Optional();
@@ -127,20 +122,6 @@ public:
   T&& operator*() && { assert(hasVal); return std::move(*getPointer()); }
 #endif
 };
-
-template<typename T> struct simplify_type;
-
-template <typename T>
-struct simplify_type<const Optional<T> > {
-  typedef const T* SimpleType;
-  static SimpleType getSimplifiedValue(const Optional<T> &Val) {
-    return Val.getPointer();
-  }
-};
-
-template <typename T>
-struct simplify_type<Optional<T> >
-  : public simplify_type<const Optional<T> > {};
 
 template <typename T> struct isPodLike;
 template <typename T> struct isPodLike<Optional<T> > {

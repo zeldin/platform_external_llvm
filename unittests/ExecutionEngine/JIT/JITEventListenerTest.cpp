@@ -8,7 +8,6 @@
 //===----------------------------------------------------------------------===//
 
 #include "llvm/ExecutionEngine/JITEventListener.h"
-#include "llvm/ADT/OwningPtr.h"
 #include "llvm/CodeGen/MachineCodeInfo.h"
 #include "llvm/ExecutionEngine/JIT.h"
 #include "llvm/IR/Instructions.h"
@@ -20,8 +19,6 @@
 #include <vector>
 
 using namespace llvm;
-
-int dummy;
 
 namespace {
 
@@ -71,9 +68,11 @@ class JITEventListenerTest : public testing::Test {
   }
 
   Module *M;
-  const OwningPtr<ExecutionEngine> EE;
+  const std::unique_ptr<ExecutionEngine> EE;
 };
 
+// Tests on SystemZ disabled as we're running the old JIT
+#if !defined(__s390__) && !defined(__aarch64__)
 Function *buildFunction(Module *M) {
   Function *Result = Function::Create(
       TypeBuilder<int32_t(int32_t), false>::get(getGlobalContext()),
@@ -224,6 +223,7 @@ TEST_F(JITEventListenerTest, MatchesMachineCodeInfo) {
   EXPECT_EQ(1U, Listener.FreedEvents[0].Index);
   EXPECT_EQ(F_addr, Listener.FreedEvents[0].Code);
 }
+#endif
 
 class JITEnvironment : public testing::Environment {
   virtual void SetUp() {

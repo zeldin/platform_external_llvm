@@ -154,6 +154,17 @@ define <4 x i64> @sext_4i1_to_4i64(<4 x i1> %mask) {
   ret <4 x i64> %extmask
 }
 
+; AVX-LABEL: sext_16i8_to_16i16
+; AVX: vpmovsxbw
+; AVX: vmovhlps
+; AVX: vpmovsxbw
+; AVX: ret
+define <16 x i16> @sext_16i8_to_16i16(<16 x i8> *%ptr) {
+ %X = load <16 x i8>* %ptr
+ %Y = sext <16 x i8> %X to <16 x i16>
+ ret <16 x i16> %Y
+}
+
 ; AVX: sext_4i8_to_4i64
 ; AVX: vpslld  $24
 ; AVX: vpsrad  $24
@@ -165,3 +176,24 @@ define <4 x i64> @sext_4i8_to_4i64(<4 x i8> %mask) {
   ret <4 x i64> %extmask
 }
 
+; AVX: sext_4i8_to_4i64
+; AVX: vpmovsxbd
+; AVX: vpmovsxdq
+; AVX: vpmovsxdq
+; AVX: ret
+define <4 x i64> @load_sext_4i8_to_4i64(<4 x i8> *%ptr) {
+ %X = load <4 x i8>* %ptr
+ %Y = sext <4 x i8> %X to <4 x i64>
+ ret <4 x i64>%Y
+}
+
+; AVX: sext_4i16_to_4i64
+; AVX: vpmovsxwd
+; AVX: vpmovsxdq
+; AVX: vpmovsxdq
+; AVX: ret
+define <4 x i64> @load_sext_4i16_to_4i64(<4 x i16> *%ptr) {
+ %X = load <4 x i16>* %ptr
+ %Y = sext <4 x i16> %X to <4 x i64>
+ ret <4 x i64>%Y
+}

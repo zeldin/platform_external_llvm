@@ -9,20 +9,26 @@ analysis_SRC_FILES := \
   Analysis.cpp \
   BasicAliasAnalysis.cpp \
   BlockFrequencyInfo.cpp \
+  BlockFrequencyInfoImpl.cpp \
   BranchProbabilityInfo.cpp \
+  CFG.cpp \
   CFGPrinter.cpp \
   CaptureTracking.cpp \
   CodeMetrics.cpp \
   ConstantFolding.cpp \
   CostModel.cpp \
+  Delinearization.cpp \
   DependenceAnalysis.cpp \
   DomPrinter.cpp \
   DominanceFrontier.cpp \
+  CGSCCPassManager.cpp \
   IVUsers.cpp \
   InstCount.cpp \
   InstructionSimplify.cpp \
   Interval.cpp \
   IntervalPartition.cpp \
+  JumpInstrTableInfo.cpp \
+  LazyCallGraph.cpp \
   LazyValueInfo.cpp \
   LibCallAliasAnalysis.cpp \
   LibCallSemantics.cpp \
@@ -36,17 +42,7 @@ analysis_SRC_FILES := \
   ModuleDebugInfoPrinter.cpp \
   NoAliasAnalysis.cpp \
   PHITransAddr.cpp \
-  PathNumbering.cpp \
-  PathProfileInfo.cpp \
-  PathProfileVerifier.cpp \
   PostDominators.cpp \
-  ProfileDataLoader.cpp \
-  ProfileDataLoaderPass.cpp \
-  ProfileEstimatorPass.cpp \
-  ProfileInfo.cpp \
-  ProfileInfoLoader.cpp \
-  ProfileInfoLoaderPass.cpp \
-  ProfileVerifierPass.cpp \
   PtrUseVisitor.cpp \
   RegionInfo.cpp \
   RegionPass.cpp \
@@ -75,6 +71,7 @@ include $(BUILD_HOST_STATIC_LIBRARY)
 
 # For the device
 # =====================================================
+ifneq (true,$(DISABLE_LLVM_DEVICE_BUILDS))
 include $(CLEAR_VARS)
 
 LOCAL_MODULE:= libLLVMAnalysis
@@ -84,3 +81,4 @@ LOCAL_SRC_FILES := $(analysis_SRC_FILES)
 include $(LLVM_DEVICE_BUILD_MK)
 include $(LLVM_GEN_INTRINSICS_MK)
 include $(BUILD_STATIC_LIBRARY)
+endif

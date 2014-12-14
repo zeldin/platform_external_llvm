@@ -17,15 +17,12 @@
 
 #include "AMDGPUFrameLowering.h"
 #include "AMDGPUInstrInfo.h"
+#include "AMDGPUIntrinsicInfo.h"
 #include "AMDGPUSubtarget.h"
-#include "AMDILIntrinsicInfo.h"
 #include "R600ISelLowering.h"
-#include "llvm/ADT/OwningPtr.h"
 #include "llvm/IR/DataLayout.h"
 
 namespace llvm {
-
-MCAsmInfo* createMCAsmInfo(const Target &T, StringRef TT);
 
 class AMDGPUTargetMachine : public LLVMTargetMachine {
 
@@ -33,36 +30,40 @@ class AMDGPUTargetMachine : public LLVMTargetMachine {
   const DataLayout Layout;
   AMDGPUFrameLowering FrameLowering;
   AMDGPUIntrinsicInfo IntrinsicInfo;
-  const AMDGPUInstrInfo * InstrInfo;
-  AMDGPUTargetLowering * TLInfo;
-  const InstrItineraryData* InstrItins;
+  std::unique_ptr<AMDGPUTargetLowering> TLInfo;
+  const InstrItineraryData *InstrItins;
 
 public:
-   AMDGPUTargetMachine(const Target &T, StringRef TT, StringRef FS,
-                       StringRef CPU,
-                       TargetOptions Options,
-                       Reloc::Model RM, CodeModel::Model CM,
-                       CodeGenOpt::Level OL);
-   ~AMDGPUTargetMachine();
-   virtual const AMDGPUFrameLowering* getFrameLowering() const {
-     return &FrameLowering;
-   }
-   virtual const AMDGPUIntrinsicInfo* getIntrinsicInfo() const {
-     return &IntrinsicInfo;
-   }
-   virtual const AMDGPUInstrInfo *getInstrInfo() const {return InstrInfo;}
-   virtual const AMDGPUSubtarget *getSubtargetImpl() const {return &Subtarget; }
-   virtual const AMDGPURegisterInfo *getRegisterInfo() const {
-      return &InstrInfo->getRegisterInfo();
-   }
-   virtual AMDGPUTargetLowering * getTargetLowering() const {
-      return TLInfo;
-   }
-   virtual const InstrItineraryData* getInstrItineraryData() const {
-      return InstrItins;
-   }
-   virtual const DataLayout* getDataLayout() const { return &Layout; }
-   virtual TargetPassConfig *createPassConfig(PassManagerBase &PM);
+  AMDGPUTargetMachine(const Target &T, StringRef TT, StringRef FS,
+                      StringRef CPU, TargetOptions Options, Reloc::Model RM,
+                      CodeModel::Model CM, CodeGenOpt::Level OL);
+  ~AMDGPUTargetMachine();
+  const AMDGPUFrameLowering *getFrameLowering() const override {
+    return &FrameLowering;
+  }
+  const AMDGPUIntrinsicInfo *getIntrinsicInfo() const override {
+    return &IntrinsicInfo;
+  }
+  const AMDGPUInstrInfo *getInstrInfo() const override {
+    return getSubtargetImpl()->getInstrInfo();
+  }
+  const AMDGPUSubtarget *getSubtargetImpl() const override {
+    return &Subtarget;
+  }
+  const AMDGPURegisterInfo *getRegisterInfo() const override {
+    return &getInstrInfo()->getRegisterInfo();
+  }
+  AMDGPUTargetLowering *getTargetLowering() const override {
+    return TLInfo.get();
+  }
+  const InstrItineraryData *getInstrItineraryData() const override {
+    return InstrItins;
+  }
+  const DataLayout *getDataLayout() const override { return &Layout; }
+  TargetPassConfig *createPassConfig(PassManagerBase &PM) override;
+
+  /// \brief Register R600 analysis passes with a pass manager.
+  void addAnalysisPasses(PassManagerBase &PM) override;
 };
 
 } // End namespace llvm

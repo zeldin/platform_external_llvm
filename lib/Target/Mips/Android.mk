@@ -8,11 +8,14 @@ mips_codegen_TBLGEN_TABLES := \
   MipsGenMCPseudoLowering.inc \
   MipsGenAsmWriter.inc \
   MipsGenDAGISel.inc \
+  MipsGenFastISel.inc \
   MipsGenCallingConv.inc \
   MipsGenSubtargetInfo.inc
 
 mips_codegen_SRC_FILES := \
   Mips16FrameLowering.cpp \
+  Mips16HardFloat.cpp \
+  Mips16HardFloatInfo.cpp \
   Mips16ISelDAGToDAG.cpp \
   Mips16ISelLowering.cpp \
   Mips16InstrInfo.cpp \
@@ -22,6 +25,7 @@ mips_codegen_SRC_FILES := \
   MipsCodeEmitter.cpp \
   MipsConstantIslandPass.cpp \
   MipsDelaySlotFiller.cpp \
+  MipsFastISel.cpp \
   MipsFrameLowering.cpp \
   MipsInstrInfo.cpp \
   MipsISelDAGToDAG.cpp \
@@ -30,6 +34,9 @@ mips_codegen_SRC_FILES := \
   MipsLongBranch.cpp \
   MipsMachineFunction.cpp \
   MipsMCInstLower.cpp \
+  MipsModuleISelDAGToDAG.cpp \
+  MipsOs16.cpp \
+  MipsOptimizePICCall.cpp \
   MipsRegisterInfo.cpp \
   MipsSEFrameLowering.cpp \
   MipsSEISelDAGToDAG.cpp \
@@ -61,7 +68,7 @@ include $(BUILD_HOST_STATIC_LIBRARY)
 
 # For the device only
 # =====================================================
-ifeq ($(TARGET_ARCH),mips)
+ifneq (true,$(DISABLE_LLVM_DEVICE_BUILDS))
 include $(CLEAR_VARS)
 include $(CLEAR_TBLGEN_VARS)
 

@@ -38,17 +38,16 @@ for.end:
   ret void
 }
 
-; It would be nice if SCEV and any loop analysis could assume that
-; preheaders exist. Unfortunately it is not always the case. This test
-; checks that SCEVExpander can handle an outer loop that has not yet
-; been simplified. As a result, the inner loop's exit test will not be
-; rewritten.
+; This test checks that SCEVExpander can handle an outer loop that has been
+; simplified, and as a result the inner loop's exit test will be rewritten.
 define void @expandOuterRecurrence(i32 %arg) nounwind {
 entry:
   %sub1 = sub nsw i32 %arg, 1
   %cmp1 = icmp slt i32 0, %sub1
   br i1 %cmp1, label %outer, label %exit
 
+; CHECK: outer:
+; CHECK: icmp slt
 outer:
   %i = phi i32 [ 0, %entry ], [ %i.inc, %outer.inc ]
   %sub2 = sub nsw i32 %arg, %i
@@ -60,7 +59,6 @@ inner.ph:
   br label %inner
 
 ; CHECK: inner:
-; CHECK: icmp slt
 ; CHECK: br i1
 inner:
   %j = phi i32 [ 0, %inner.ph ], [ %j.inc, %inner ]
@@ -165,7 +163,7 @@ entry:
   %lim = add i32 %x, %n
   %cmp.ph = icmp ult i32 %x, %lim
   br i1 %cmp.ph, label %loop, label %exit
-; CHECK: @geplftr
+; CHECK-LABEL: @geplftr(
 ; CHECK: loop:
 ; CHECK: phi i8*
 ; DISABLE-NOT: phi      // This check is currently disabled
@@ -190,7 +188,7 @@ exit:
 define void @nevertaken() nounwind uwtable ssp {
 entry:
   br label %loop
-; CHECK: @nevertaken
+; CHECK-LABEL: @nevertaken(
 ; CHECK: loop:
 ; CHECK-NOT: phi
 ; CHECK-NOT: add

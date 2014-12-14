@@ -1,4 +1,6 @@
-; RUN: llc -march=mipsel -mcpu=mips32 < %s | FileCheck %s
+; RUN: llc -march=mipsel -mcpu=mips32   -asm-show-inst < %s | FileCheck %s -check-prefix=CHECK -check-prefix=NOT-R6
+; RUN: llc -march=mipsel -mcpu=mips32r2 -asm-show-inst < %s | FileCheck %s -check-prefix=CHECK -check-prefix=NOT-R6
+; RUN: llc -march=mipsel -mcpu=mips32r6 -asm-show-inst < %s | FileCheck %s -check-prefix=CHECK -check-prefix=R6
 
 declare void @llvm.eh.return.i32(i32, i8*)
 declare void @foo(...)
@@ -9,7 +11,7 @@ entry:
   call void @llvm.eh.return.i32(i32 %offset, i8* %handler)
   unreachable
 
-; CHECK:        f1
+; CHECK:    f1:
 ; CHECK:        addiu   $sp, $sp, -[[spoffset:[0-9]+]]
 
 ; check that $a0-$a3 are saved on stack.
@@ -37,9 +39,12 @@ entry:
 ; CHECK:        lw      $7, [[offset3]]($sp)
 
 ; check that stack is adjusted by $v1 and that code returns to address in $v0
+; also check that $25 contains handler value
 ; CHECK:        addiu   $sp, $sp, [[spoffset]]
+; CHECK:        move    $25, $2
 ; CHECK:        move    $ra, $2
-; CHECK:        jr      $ra
+; NOT-R6:       jr      $ra # <MCInst #{{[0-9]+}} JR
+; R6:           jr      $ra # <MCInst #{{[0-9]+}} JALR
 ; CHECK:        addu    $sp, $sp, $3
 }
 
@@ -48,7 +53,7 @@ entry:
   call void @llvm.eh.return.i32(i32 %offset, i8* %handler)
   unreachable
 
-; CHECK:        f2
+; CHECK:    f2:
 ; CHECK:        addiu   $sp, $sp, -[[spoffset:[0-9]+]]
 
 ; check that $a0-$a3 are saved on stack.
@@ -74,8 +79,11 @@ entry:
 ; CHECK:        lw      $7, [[offset3]]($sp)
 
 ; check that stack is adjusted by $v1 and that code returns to address in $v0
+; also check that $25 contains handler value
 ; CHECK:        addiu   $sp, $sp, [[spoffset]]
+; CHECK:        move    $25, $2
 ; CHECK:        move    $ra, $2
-; CHECK:        jr      $ra
+; NOT-R6:       jr      $ra # <MCInst #{{[0-9]+}} JR
+; R6:           jr      $ra # <MCInst #{{[0-9]+}} JALR
 ; CHECK:        addu    $sp, $sp, $3
 }

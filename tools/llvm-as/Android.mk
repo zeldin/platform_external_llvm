@@ -8,10 +8,12 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := llvm-as
 LOCAL_MODULE_TAGS := optional
 LOCAL_SRC_FILES := $(llvm_as_SRC_FILES)
-LOCAL_LDLIBS += -lpthread -lm -ldl
-
-REQUIRES_EH := 1
-REQUIRES_RTTI := 1
+LOCAL_LDLIBS += -lm
+ifdef USE_MINGW
+LOCAL_LDLIBS += -limagehlp
+else
+LOCAL_LDLIBS += -lpthread -ldl
+endif
 
 LOCAL_STATIC_LIBRARIES := \
   libLLVMAsmParser \

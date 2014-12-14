@@ -27,9 +27,11 @@
 #if HAVE_SYS_STAT_H
 #include <sys/stat.h>
 #endif
-#if HAVE_DLFCN_H && HAVE_CXXABI_H && __GNUG__
-#include <dlfcn.h>
+#if HAVE_CXXABI_H
 #include <cxxabi.h>
+#endif
+#if HAVE_DLFCN_H
+#include <dlfcn.h>
 #endif
 #if HAVE_MACH_MACH_H
 #include <mach/mach.h>
@@ -42,7 +44,7 @@ static RETSIGTYPE SignalHandler(int Sig);  // defined below.
 static SmartMutex<true> SignalsMutex;
 
 /// InterruptFunction - The function to call if ctrl-c is pressed.
-static void (*InterruptFunction)() = 0;
+static void (*InterruptFunction)() = nullptr;
 
 static std::vector<std::string> FilesToRemove;
 static std::vector<std::pair<void(*)(void*), void*> > CallBacksToRun;
@@ -53,8 +55,7 @@ static std::vector<std::pair<void(*)(void*), void*> > CallBacksToRun;
 static const int IntSigs[] = {
   SIGHUP, SIGINT, SIGPIPE, SIGTERM, SIGUSR1, SIGUSR2
 };
-static const int *const IntSigsEnd =
-  IntSigs + sizeof(IntSigs) / sizeof(IntSigs[0]);
+static const int *const IntSigsEnd = std::end(IntSigs);
 
 // KillSigs - Signals that represent that we have a bug, and our prompt
 // termination has been ordered.
@@ -73,8 +74,7 @@ static const int KillSigs[] = {
   , SIGEMT
 #endif
 };
-static const int *const KillSigsEnd =
-  KillSigs + sizeof(KillSigs) / sizeof(KillSigs[0]);
+static const int *const KillSigsEnd = std::end(KillSigs);
 
 static unsigned NumRegisteredSignals = 0;
 static struct {
@@ -113,7 +113,7 @@ static void UnregisterHandlers() {
   // Restore all of the signal handlers to how they were before we showed up.
   for (unsigned i = 0, e = NumRegisteredSignals; i != e; ++i)
     sigaction(RegisteredSignalInfo[i].SigNo,
-              &RegisteredSignalInfo[i].SA, 0);
+              &RegisteredSignalInfo[i].SA, nullptr);
   NumRegisteredSignals = 0;
 }
 
@@ -160,7 +160,7 @@ static RETSIGTYPE SignalHandler(int Sig) {
   // Unmask all potentially blocked kill signals.
   sigset_t SigMask;
   sigfillset(&SigMask);
-  sigprocmask(SIG_UNBLOCK, &SigMask, 0);
+  sigprocmask(SIG_UNBLOCK, &SigMask, nullptr);
 
   SignalsMutex.acquire();
   RemoveFilesToRemove();
@@ -169,7 +169,7 @@ static RETSIGTYPE SignalHandler(int Sig) {
     if (InterruptFunction) {
       void (*IF)() = InterruptFunction;
       SignalsMutex.release();
-      InterruptFunction = 0;
+      InterruptFunction = nullptr;
       IF();        // run the interrupt function.
       return;
     }
@@ -184,6 +184,15 @@ static RETSIGTYPE SignalHandler(int Sig) {
   // Otherwise if it is a fault (like SEGV) run any handler.
   for (unsigned i = 0, e = CallBacksToRun.size(); i != e; ++i)
     CallBacksToRun[i].first(CallBacksToRun[i].second);
+
+#ifdef __s390__
+  // On S/390, certain signals are delivered with PSW Address pointing to
+  // *after* the faulting instruction.  Simply returning from the signal
+  // handler would continue execution after that point, instead of
+  // re-raising the signal.  Raise the signal manually in those cases.
+  if (Sig == SIGILL || Sig == SIGFPE || Sig == SIGTRAP)
+    raise(Sig);
+#endif
 }
 
 void llvm::sys::RunInterruptHandlers() {
@@ -200,11 +209,11 @@ void llvm::sys::SetInterruptFunction(void (*IF)()) {
 }
 
 // RemoveFileOnSignal - The public API
-bool llvm::sys::RemoveFileOnSignal(const sys::Path &Filename,
+bool llvm::sys::RemoveFileOnSignal(StringRef Filename,
                                    std::string* ErrMsg) {
   SignalsMutex.acquire();
-  std::string *OldPtr = FilesToRemove.empty() ? 0 : &FilesToRemove[0];
-  FilesToRemove.push_back(Filename.str());
+  std::string *OldPtr = FilesToRemove.empty() ? nullptr : &FilesToRemove[0];
+  FilesToRemove.push_back(Filename);
 
   // We want to call 'c_str()' on every std::string in this vector so that if
   // the underlying implementation requires a re-allocation, it happens here
@@ -224,10 +233,10 @@ bool llvm::sys::RemoveFileOnSignal(const sys::Path &Filename,
 }
 
 // DontRemoveFileOnSignal - The public API
-void llvm::sys::DontRemoveFileOnSignal(const sys::Path &Filename) {
+void llvm::sys::DontRemoveFileOnSignal(StringRef Filename) {
   SignalsMutex.acquire();
   std::vector<std::string>::reverse_iterator RI =
-    std::find(FilesToRemove.rbegin(), FilesToRemove.rend(), Filename.str());
+    std::find(FilesToRemove.rbegin(), FilesToRemove.rend(), Filename);
   std::vector<std::string>::iterator I = FilesToRemove.end();
   if (RI != FilesToRemove.rend())
     I = FilesToRemove.erase(RI.base()-1);
@@ -262,7 +271,7 @@ void llvm::sys::PrintStackTrace(FILE *FD) {
   // Use backtrace() to output a backtrace on Linux systems with glibc.
   int depth = backtrace(StackTrace,
                         static_cast<int>(array_lengthof(StackTrace)));
-#if HAVE_DLFCN_H && HAVE_CXXABI_H && __GNUG__
+#if HAVE_DLFCN_H && __GNUG__
   int width = 0;
   for (int i = 0; i < depth; ++i) {
     Dl_info dlinfo;
@@ -270,8 +279,8 @@ void llvm::sys::PrintStackTrace(FILE *FD) {
     const char* name = strrchr(dlinfo.dli_fname, '/');
 
     int nwidth;
-    if (name == NULL) nwidth = strlen(dlinfo.dli_fname);
-    else              nwidth = strlen(name) - 1;
+    if (!name) nwidth = strlen(dlinfo.dli_fname);
+    else       nwidth = strlen(name) - 1;
 
     if (nwidth > width) width = nwidth;
   }
@@ -283,18 +292,22 @@ void llvm::sys::PrintStackTrace(FILE *FD) {
     fprintf(FD, "%-2d", i);
 
     const char* name = strrchr(dlinfo.dli_fname, '/');
-    if (name == NULL) fprintf(FD, " %-*s", width, dlinfo.dli_fname);
-    else              fprintf(FD, " %-*s", width, name+1);
+    if (!name) fprintf(FD, " %-*s", width, dlinfo.dli_fname);
+    else       fprintf(FD, " %-*s", width, name+1);
 
     fprintf(FD, " %#0*lx",
             (int)(sizeof(void*) * 2) + 2, (unsigned long)StackTrace[i]);
 
-    if (dlinfo.dli_sname != NULL) {
-      int res;
+    if (dlinfo.dli_sname != nullptr) {
       fputc(' ', FD);
-      char* d = abi::__cxa_demangle(dlinfo.dli_sname, NULL, NULL, &res);
-      if (d == NULL) fputs(dlinfo.dli_sname, FD);
-      else           fputs(d, FD);
+#  if HAVE_CXXABI_H
+      int res;
+      char* d = abi::__cxa_demangle(dlinfo.dli_sname, nullptr, nullptr, &res);
+#  else
+      char* d = NULL;
+#  endif
+      if (!d) fputs(dlinfo.dli_sname, FD);
+      else    fputs(d, FD);
       free(d);
 
       // FIXME: When we move to C++11, use %t length modifier. It's not in
@@ -318,9 +331,9 @@ static void PrintStackTraceSignalHandler(void *) {
 /// PrintStackTraceOnErrorSignal - When an error signal (such as SIGABRT or
 /// SIGSEGV) is delivered to the process, print a stack trace and then exit.
 void llvm::sys::PrintStackTraceOnErrorSignal() {
-  AddSignalHandler(PrintStackTraceSignalHandler, 0);
+  AddSignalHandler(PrintStackTraceSignalHandler, nullptr);
 
-#if defined(__APPLE__) && !defined(ANDROID)
+#if defined(__APPLE__) && defined(ENABLE_CRASH_OVERRIDES)
   // Environment variable to disable any kind of crash dialog.
   if (getenv("LLVM_DISABLE_CRASH_REPORT")) {
     mach_port_t self = mach_task_self();
@@ -346,7 +359,7 @@ void llvm::sys::PrintStackTraceOnErrorSignal() {
 // the same linkage unit by just defining our own versions of the assert handler
 // and abort.
 
-#if defined(__APPLE__) && !defined(ANDROID)
+#if defined(__APPLE__) && defined(ENABLE_CRASH_OVERRIDES)
 
 #include <signal.h>
 #include <pthread.h>

@@ -11,7 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#define DEBUG_TYPE "jit"
 #include "MipsJITInfo.h"
 #include "MipsInstrInfo.h"
 #include "MipsRelocations.h"
@@ -24,6 +23,8 @@
 #include "llvm/Support/raw_ostream.h"
 #include <cstdlib>
 using namespace llvm;
+
+#define DEBUG_TYPE "jit"
 
 
 void MipsJITInfo::replaceMachineCodeForFunction(void *Old, void *New) {
@@ -218,9 +219,9 @@ void *MipsJITInfo::emitFunctionStub(const Function *F, void *Fn,
     Hi++;
   int Lo = (int)(EmittedAddr & 0xffff);
 
-  // lui t9, %hi(EmittedAddr)
-  // addiu t9, t9, %lo(EmittedAddr)
-  // jalr t8, t9
+  // lui $t9, %hi(EmittedAddr)
+  // addiu $t9, $t9, %lo(EmittedAddr)
+  // jalr $t8, $t9
   // nop
   if (IsLittleEndian) {
     JCE.emitWordLE(0xf << 26 | 25 << 16 | Hi);

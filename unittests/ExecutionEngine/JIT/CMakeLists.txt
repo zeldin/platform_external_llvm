@@ -1,8 +1,11 @@
 set(LLVM_LINK_COMPONENTS
-  asmparser
-  bitreader
-  bitwriter
-  jit
+  AsmParser
+  BitReader
+  BitWriter
+  Core
+  ExecutionEngine
+  JIT
+  Support
   nativecodegen
   )
 
@@ -48,6 +51,9 @@ if(MSVC)
   list(APPEND JITTestsSources JITTests.def)
 endif()
 
+# The JIT tests need to dlopen things.
+set(LLVM_NO_DEAD_STRIP 1)
+
 add_llvm_unittest(JITTests
   ${JITTestsSources}
   )
@@ -55,3 +61,4 @@ add_llvm_unittest(JITTests
 if(MINGW OR CYGWIN)
   set_property(TARGET JITTests PROPERTY LINK_FLAGS -Wl,--export-all-symbols)
 endif()
+set_target_properties(JITTests PROPERTIES ENABLE_EXPORTS 1)

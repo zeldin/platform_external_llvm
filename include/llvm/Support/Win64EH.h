@@ -106,14 +106,21 @@ struct UnwindInfo {
     return reinterpret_cast<void *>(&UnwindCodes[(NumCodes+1) & ~1]);
   }
 
-  /// \brief Return image-relativ offset of language-specific exception handler.
-  uint32_t getLanguageSpecificHandlerOffset() {
-    return *reinterpret_cast<uint32_t *>(getLanguageSpecificData());
+  /// \brief Return pointer to language specific data part of UnwindInfo.
+  const void *getLanguageSpecificData() const {
+    return reinterpret_cast<const void *>(&UnwindCodes[(NumCodes + 1) & ~1]);
   }
 
-  /// \brief Set image-relativ offset of language-specific exception handler.
+  /// \brief Return image-relative offset of language-specific exception handler.
+  uint32_t getLanguageSpecificHandlerOffset() const {
+    return *reinterpret_cast<const support::ulittle32_t *>(
+               getLanguageSpecificData());
+  }
+
+  /// \brief Set image-relative offset of language-specific exception handler.
   void setLanguageSpecificHandlerOffset(uint32_t offset) {
-    *reinterpret_cast<uint32_t *>(getLanguageSpecificData()) = offset;
+    *reinterpret_cast<support::ulittle32_t *>(getLanguageSpecificData()) =
+        offset;
   }
 
   /// \brief Return pointer to exception-specific data.
@@ -125,6 +132,11 @@ struct UnwindInfo {
   /// \brief Return pointer to chained unwind info.
   RuntimeFunction *getChainedFunctionEntry() {
     return reinterpret_cast<RuntimeFunction *>(getLanguageSpecificData());
+  }
+
+  /// \brief Return pointer to chained unwind info.
+  const RuntimeFunction *getChainedFunctionEntry() const {
+    return reinterpret_cast<const RuntimeFunction *>(getLanguageSpecificData());
   }
 };
 

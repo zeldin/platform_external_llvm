@@ -32,11 +32,8 @@ SparcTargetMachine::SparcTargetMachine(const Target &T, StringRef TT,
                                        CodeGenOpt::Level OL,
                                        bool is64bit)
   : LLVMTargetMachine(T, TT, CPU, FS, Options, RM, CM, OL),
-    Subtarget(TT, CPU, FS, is64bit),
-    DL(Subtarget.getDataLayout()),
-    InstrInfo(Subtarget),
-    TLInfo(*this), TSInfo(*this),
-    FrameLowering(Subtarget) {
+    Subtarget(TT, CPU, FS, *this, is64bit) {
+  initAsmInfo();
 }
 
 namespace {
@@ -50,8 +47,8 @@ public:
     return getTM<SparcTargetMachine>();
   }
 
-  virtual bool addInstSelector();
-  virtual bool addPreEmitPass();
+  bool addInstSelector() override;
+  bool addPreEmitPass() override;
 };
 } // namespace
 
@@ -64,11 +61,17 @@ bool SparcPassConfig::addInstSelector() {
   return false;
 }
 
+bool SparcTargetMachine::addCodeEmitter(PassManagerBase &PM,
+                                        JITCodeEmitter &JCE) {
+  // Machine code emitter pass for Sparc.
+  PM.add(createSparcJITCodeEmitterPass(*this, JCE));
+  return false;
+}
+
 /// addPreEmitPass - This pass may be implemented by targets that want to run
 /// passes immediately before machine code is emitted.  This should return
 /// true if -print-machineinstrs should print out the code after the passes.
 bool SparcPassConfig::addPreEmitPass(){
-  addPass(createSparcFPMoverPass(getSparcTargetMachine()));
   addPass(createSparcDelaySlotFillerPass(getSparcTargetMachine()));
   return true;
 }

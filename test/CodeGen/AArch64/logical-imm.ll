@@ -1,10 +1,10 @@
-; RUN: llc -verify-machineinstrs < %s -mtriple=aarch64-none-linux-gnu | FileCheck %s
+; RUN: llc -verify-machineinstrs -o - %s -mtriple=arm64-apple-ios7.0 | FileCheck %s
 
 @var32 = global i32 0
 @var64 = global i64 0
 
 define void @test_and(i32 %in32, i64 %in64) {
-; CHECK: test_and:
+; CHECK-LABEL: test_and:
 
   %val0 = and i32 %in32, 2863311530
   store volatile i32 %val0, i32* @var32
@@ -26,7 +26,7 @@ define void @test_and(i32 %in32, i64 %in64) {
 }
 
 define void @test_orr(i32 %in32, i64 %in64) {
-; CHECK: test_orr:
+; CHECK-LABEL: test_orr:
 
   %val0 = or i32 %in32, 2863311530
   store volatile i32 %val0, i32* @var32
@@ -48,7 +48,7 @@ define void @test_orr(i32 %in32, i64 %in64) {
 }
 
 define void @test_eor(i32 %in32, i64 %in64) {
-; CHECK: test_eor:
+; CHECK-LABEL: test_eor:
 
   %val0 = xor i32 %in32, 2863311530
   store volatile i32 %val0, i32* @var32
@@ -70,7 +70,7 @@ define void @test_eor(i32 %in32, i64 %in64) {
 }
 
 define void @test_mov(i32 %in32, i64 %in64) {
-; CHECK: test_mov:
+; CHECK-LABEL: test_mov:
   %val0 = add i32 %in32, 2863311530
   store i32 %val0, i32* @var32
 ; CHECK: orr {{w[0-9]+}}, wzr, #0xaaaaaaaa

@@ -1,10 +1,10 @@
-; RUN: llc -verify-machineinstrs < %s -mtriple=aarch64-none-linux-gnu | FileCheck %s
+; RUN: llc -verify-machineinstrs -o - %s -mtriple=aarch64-linux-gnu | FileCheck %s
 
 @var32 = global i32 0
 @var64 = global i64 0
 
 define void @foo() {
-; CHECK: foo:
+; CHECK-LABEL: foo:
 
   %val1 = load volatile i32* @var32
   %tst1 = icmp eq i32 %val1, 0

@@ -1,5 +1,6 @@
-; RUN: llc -verify-machineinstrs < %s -mtriple=aarch64-none-linux-gnu | FileCheck %s
-; RUN: llc -verify-machineinstrs < %s -mtriple=aarch64-none-linux-gnu -filetype=obj | elf-dump | FileCheck %s -check-prefix=CHECK-ELF
+; RUN: llc -verify-machineinstrs -o - %s -mtriple=aarch64-none-linux-gnu -aarch64-atomic-cfg-tidy=0 | FileCheck %s
+; RUN: llc -code-model=large -verify-machineinstrs -o - %s -mtriple=aarch64-none-linux-gnu -aarch64-atomic-cfg-tidy=0 | FileCheck --check-prefix=CHECK-LARGE %s
+; RUN: llc -mtriple=aarch64-none-linux-gnu -verify-machineinstrs -relocation-model=pic -aarch64-atomic-cfg-tidy=0 -o - %s | FileCheck --check-prefix=CHECK-PIC %s
 
 define i32 @test_jumptable(i32 %in) {
 ; CHECK: test_jumptable
@@ -11,9 +12,22 @@ define i32 @test_jumptable(i32 %in) {
     i32 4, label %lbl4
   ]
 ; CHECK: adrp [[JTPAGE:x[0-9]+]], .LJTI0_0
-; CHECK: add x[[JT:[0-9]+]], [[JTPAGE]], #:lo12:.LJTI0_0
+; CHECK: add x[[JT:[0-9]+]], [[JTPAGE]], {{#?}}:lo12:.LJTI0_0
 ; CHECK: ldr [[DEST:x[0-9]+]], [x[[JT]], {{x[0-9]+}}, lsl #3]
 ; CHECK: br [[DEST]]
+
+; CHECK-LARGE: movz x[[JTADDR:[0-9]+]], #:abs_g3:.LJTI0_0
+; CHECK-LARGE: movk x[[JTADDR]], #:abs_g2_nc:.LJTI0_0
+; CHECK-LARGE: movk x[[JTADDR]], #:abs_g1_nc:.LJTI0_0
+; CHECK-LARGE: movk x[[JTADDR]], #:abs_g0_nc:.LJTI0_0
+; CHECK-LARGE: ldr [[DEST:x[0-9]+]], [x[[JTADDR]], {{x[0-9]+}}, lsl #3]
+; CHECK-LARGE: br [[DEST]]
+
+; CHECK-PIC: adrp [[JTPAGE:x[0-9]+]], .LJTI0_0
+; CHECK-PIC: add x[[JT:[0-9]+]], [[JTPAGE]], {{#?}}:lo12:.LJTI0_0
+; CHECK-PIC: ldrsw [[DEST:x[0-9]+]], [x[[JT]], {{x[0-9]+}}, lsl #2]
+; CHECK-PIC: add [[TABLE:x[0-9]+]], [[DEST]], x[[JT]]
+; CHECK-PIC: br [[TABLE]]
 
 def:
   ret i32 0
@@ -41,16 +55,11 @@ lbl4:
 ; CHECK-NEXT: .xword
 ; CHECK-NEXT: .xword
 
-; ELF tests:
-
-; First make sure we get a page/lo12 pair in .text to pick up the jump-table
-; CHECK-ELF: .rela.text
-; CHECK-ELF: ('r_sym', 0x00000008)
-; CHECK-ELF-NEXT: ('r_type', 0x00000113)
-; CHECK-ELF: ('r_sym', 0x00000008)
-; CHECK-ELF-NEXT: ('r_type', 0x00000115)
-
-; Also check the targets in .rodata are relocated
-; CHECK-ELF: .rela.rodata
-; CHECK-ELF: ('r_sym', 0x00000005)
-; CHECK-ELF-NEXT: ('r_type', 0x00000101)
+; CHECK-PIC-NOT: .data_region
+; CHECK-PIC: .LJTI0_0:
+; CHECK-PIC-NEXT: .word
+; CHECK-PIC-NEXT: .word
+; CHECK-PIC-NEXT: .word
+; CHECK-PIC-NEXT: .word
+; CHECK-PIC-NEXT: .word
+; CHECK-PIC-NOT: .end_data_region
