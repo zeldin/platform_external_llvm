@@ -121,7 +121,7 @@
 #define LLVM_NATIVE_ARCH PowerPC
 
 /* Host triple LLVM will be executed on */
-#define LLVM_HOSTTRIPLE "powerpc-unknown-linux-gnu"
+#define LLVM_HOST_TRIPLE "powerpc-unknown-linux-gnu"
 
 
 #else
