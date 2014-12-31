@@ -8,6 +8,7 @@ include external/libcxx/libcxx.mk
 LOCAL_CFLAGS +=	\
 	-D_GNU_SOURCE	\
 	-D__STDC_LIMIT_MACROS	\
+	-D__STDC_CONSTANT_MACROS	\
 	-O2	\
 	-fomit-frame-pointer	\
 	-Wall	\
