@@ -28,7 +28,7 @@ LOCAL_CFLAGS := -DANDROID_ENGINEERING_BUILD \
                 $(LOCAL_CFLAGS)
 endif
 
-ifeq ($(LLVM_ENABLE_ASSERTION),true)
+ifeq ($(FORCE_BUILD_LLVM_DISABLE_NDEBUG),true)
 LOCAL_CFLAGS :=	\
 	$(LOCAL_CFLAGS) \
 	-D_DEBUG	\
@@ -58,13 +58,10 @@ LOCAL_CPPFLAGS :=	\
 # Make sure bionic is first so we can include system headers.
 LOCAL_C_INCLUDES :=	\
 	bionic \
-	external/libcxx/include \
 	$(LLVM_ROOT_PATH)	\
 	$(LLVM_ROOT_PATH)/include	\
 	$(LLVM_ROOT_PATH)/device/include	\
 	$(LOCAL_C_INCLUDES)
-
-include external/libcxx/libcxx.mk
 
 ###########################################################
 ## Commands for running tblgen to compile a td file

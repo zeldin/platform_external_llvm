@@ -3,13 +3,17 @@ ifneq ($(HOST_OS),windows)
 LOCAL_CLANG := true
 endif
 
-include external/libcxx/libcxx.mk
+ifeq ($(FORCE_BUILD_LLVM_DEBUG),true)
+local_optflags = -O0 -g
+else
+local_optflags = -O2
+endif
 
 LOCAL_CFLAGS +=	\
 	-D_GNU_SOURCE	\
 	-D__STDC_LIMIT_MACROS	\
 	-D__STDC_CONSTANT_MACROS	\
-	-O2	\
+	$(local_optflags)	\
 	-fomit-frame-pointer	\
 	-Wall	\
 	-W	\
@@ -18,7 +22,7 @@ LOCAL_CFLAGS +=	\
 	-Dsprintf=sprintf \
 	$(LOCAL_CFLAGS)
 
-ifeq ($(LLVM_ENABLE_ASSERTION),true)
+ifeq ($(FORCE_BUILD_LLVM_DISABLE_NDEBUG),true)
 LOCAL_CFLAGS :=	\
 	$(LOCAL_CFLAGS) \
 	-D_DEBUG	\
@@ -49,12 +53,23 @@ LOCAL_C_INCLUDES :=	\
 	$(LLVM_ROOT_PATH)	\
 	$(LLVM_ROOT_PATH)/include	\
 	$(LLVM_ROOT_PATH)/host/include	\
-        external/libcxx/include \
 	$(LOCAL_C_INCLUDES)
+
+# Add on ncurses to have support for terminfo
+ifneq ($(HOST_OS),windows)
+LOCAL_LDLIBS += -lncurses
+ifneq ($(HOST_OS),darwin)
+LOCAL_LDLIBS += -lgcc_s
+endif
+endif
 
 LOCAL_IS_HOST_MODULE := true
 
-LOCAL_32_BIT_ONLY := true
+ifeq ($(HOST_PREFER_32_BIT),true)
+LOCAL_MULTILIB := 32
+else
+LOCAL_MULTILIB := first
+endif
 
 ###########################################################
 ## Commands for running tblgen to compile a td file

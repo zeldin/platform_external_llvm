@@ -1,6 +1,17 @@
 LOCAL_PATH := $(call my-dir)
 LLVM_ROOT_PATH := $(LOCAL_PATH)
-LLVM_ENABLE_ASSERTION := false
+
+FORCE_BUILD_LLVM_DISABLE_NDEBUG ?= false
+# Legality check: FORCE_BUILD_LLVM_DISABLE_NDEBUG should consist of one word -- either "true" or "false".
+ifneq "$(words $(FORCE_BUILD_LLVM_DISABLE_NDEBUG))$(words $(filter-out true false,$(FORCE_BUILD_LLVM_DISABLE_NDEBUG)))" "10"
+  $(error FORCE_BUILD_LLVM_DISABLE_NDEBUG may only be true, false, or unset)
+endif
+
+FORCE_BUILD_LLVM_DEBUG ?= false
+# Legality check: FORCE_BUILD_LLVM_DEBUG should consist of one word -- either "true" or "false".
+ifneq "$(words $(FORCE_BUILD_LLVM_DEBUG))$(words $(filter-out true false,$(FORCE_BUILD_LLVM_DEBUG)))" "10"
+  $(error FORCE_BUILD_LLVM_DEBUG may only be true, false, or unset)
+endif
 
 include $(CLEAR_VARS)
 
@@ -13,27 +24,29 @@ subdirs := \
   lib/Bitcode/Writer \
   lib/ExecutionEngine \
   lib/ExecutionEngine/RuntimeDyld \
-  lib/ExecutionEngine/JIT \
   lib/ExecutionEngine/MCJIT \
+  lib/ExecutionEngine/Orc \
   lib/ExecutionEngine/Interpreter \
   lib/CodeGen \
   lib/CodeGen/AsmPrinter \
   lib/CodeGen/SelectionDAG \
-  lib/DebugInfo \
+  lib/DebugInfo/DWARF \
+  lib/DebugInfo/PDB \
   lib/IR \
   lib/IRReader \
   lib/Linker \
   lib/LTO \
   lib/MC \
-  lib/MC/MCAnalysis \
   lib/MC/MCDisassembler \
   lib/MC/MCParser \
   lib/Object \
   lib/Option \
+  lib/Passes \
   lib/ProfileData \
   lib/Support \
   lib/TableGen \
   lib/Target \
+  lib/Transforms/Hello \
   lib/Transforms/IPO \
   lib/Transforms/InstCombine \
   lib/Transforms/Instrumentation \
@@ -83,14 +96,18 @@ subdirs += \
 # LLVM Command Line Tools
 subdirs += \
   tools/bugpoint \
+  tools/bugpoint-passes \
+  tools/dsymutil \
   tools/llc \
   tools/lli \
+  tools/lli/ChildTarget \
   tools/llvm-ar \
   tools/llvm-as \
   tools/llvm-bcanalyzer \
   tools/llvm-c-test \
   tools/llvm-config \
   tools/llvm-cov \
+  tools/llvm-cxxdump \
   tools/llvm-dis \
   tools/llvm-diff \
   tools/llvm-dwarfdump \
@@ -101,13 +118,17 @@ subdirs += \
   tools/llvm-mcmarkup \
   tools/llvm-nm \
   tools/llvm-objdump \
+  tools/llvm-pdbdump \
   tools/llvm-profdata \
   tools/llvm-readobj \
   tools/llvm-rtdyld \
   tools/llvm-size \
+  tools/llvm-symbolizer \
+  tools/lto \
   tools/macho-dump \
   tools/obj2yaml \
   tools/opt \
+  tools/verify-uselistorder \
   tools/yaml2obj \
 
 # LLVM Command Line Utilities

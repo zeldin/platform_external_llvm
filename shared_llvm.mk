@@ -1,11 +1,10 @@
-# Don't build the library in unbundled branches.
-ifeq (,$(TARGET_BUILD_APPS))
-
 LOCAL_PATH:= $(call my-dir)
 
 llvm_pre_static_libraries := \
   libLLVMLinker \
   libLLVMipo \
+  libLLVMDebugInfoDWARF \
+  libLLVMDebugInfoPDB \
   libLLVMIRReader \
   libLLVMBitWriter \
   libLLVMBitReader
@@ -57,6 +56,7 @@ llvm_post_static_libraries := \
   libLLVMipa \
   libLLVMAnalysis \
   libLLVMTarget \
+  libLLVMMCDisassembler \
   libLLVMMC \
   libLLVMMCParser \
   libLLVMCore \
@@ -68,10 +68,9 @@ llvm_post_static_libraries := \
 
 llvm_host_static_libraries := \
   libLLVMExecutionEngine \
-  libLLVMMCDisassembler \
   libLLVMRuntimeDyld \
-  libLLVMJIT \
-  libLLVMMCJIT
+  libLLVMMCJIT \
+  libLLVMOrcJIT
 
 ifeq (true,$(FORCE_BUILD_LLVM_COMPONENTS))
 # HOST LLVM shared library build
@@ -126,6 +125,13 @@ LOCAL_WHOLE_STATIC_LIBRARIES_mips64 += $(llvm_mips_static_libraries)
 LOCAL_WHOLE_STATIC_LIBRARIES_arm64 += $(llvm_aarch64_static_libraries)
 LOCAL_WHOLE_STATIC_LIBRARIES_arm64 += $(llvm_arm_static_libraries)
 
+ifeq ($(BUILD_ARM_FOR_X86),true)
+LOCAL_WHOLE_STATIC_LIBRARIES_x86 += $(llvm_arm_static_libraries)
+LOCAL_WHOLE_STATIC_LIBRARIES_x86 += $(llvm_aarch64_static_libraries)
+LOCAL_WHOLE_STATIC_LIBRARIES_x86_64 += $(llvm_arm_static_libraries)
+LOCAL_WHOLE_STATIC_LIBRARIES_x86_64 += $(llvm_aarch64_static_libraries)
+endif
+
 LOCAL_WHOLE_STATIC_LIBRARIES += $(llvm_post_static_libraries)
 
 #LOCAL_LDLIBS := -ldl -lpthread
@@ -135,5 +141,3 @@ include $(LLVM_DEVICE_BUILD_MK)
 include $(BUILD_SHARED_LIBRARY)
 
 endif
-
-endif # don't build in unbundled branches
